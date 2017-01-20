@@ -1,0 +1,117 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+vm_interfaces = %x( VBoxManage list bridgedifs).split("\n").map { |l| /^Name:\s+(.*)/.match(l); $1  }.compact
+first_vm_interface = vm_interfaces.sort[0]
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.define "default", primary:true do |dev| 
+    dev.vm.box = "ARTACK/debian-jessie" 
+    dev.vm.box_url = "file:///Users/jeremybotha/debian/virtualbox.box"
+  end
+
+#  config.vm.define "app_server", autostart: false do |server|
+#    server.vm.box = "d8srv"
+#    server.vm.box_url = "file:///Users/jeremybotha/debian/virtualbox.box"
+#  end  
+
+  # config.vm.box_download_checksum_type = "sha1"
+  # config.vm.box_download_checksum = "99f0aac081c8386b2ce8e408d5e5976f76fd513e"
+
+  # Create a public network, which generally matched to bridged network.
+  # Bridged networks make the machine appear as another physical device on
+  # your network.
+  #config.vm.network :public_network, :use_dhcp_assigned_default_route => true
+  # config.vm.network :public_network, :bridge => first_vm_interface, :use_dhcp_assigned_default_route => true
+  #config.vm.network :public_network, :bridge => 'en1: Wi-Fi (AirPort)', :use_dhcp_assigned_default_route => true
+
+  # Create a private network, which allows host-only access to the machine
+  # using a specific IP.
+  config.vm.network :private_network, ip: "192.168.10.10"
+
+  # Provider-specific configuration so you can fine-tune various
+  # backing providers for Vagrant. These expose provider-specific options.
+  # Example for VirtualBox:
+  #
+  config.vm.provider :virtualbox do |vb|
+     # Don't boot with headless mode
+     #vb.gui = true
+
+    # Use VBoxManage to customize the VM. For example to change memory:
+    vb.customize ["modifyvm", :id, "--memory", "10200"]
+    vb.customize ["modifyvm", :id, "--cpus", "4"]
+  end
+
+  # The url from where the 'config.vm.box' box will be fetched if it
+  # doesn't already exist on the user's system.
+  # config.vm.box_url = "http://domain.com/path/to/above.box"
+
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine. In the example below,
+  # accessing "localhost:8080" will access port 80 on the guest machine.
+  # config.vm.network :forwarded_port, guest: 80, host: 8080
+  #config.vm.network :forwarded_port, guest: 22, host: 2222
+  # Share SSH locally by default
+  config.vm.network :forwarded_port, guest: 22, host: 2222, host_ip: "0.0.0.0", id: "ssh", auto_correct: true
+  config.vm.network :forwarded_port, guest: 3306,  host: 3306,  id: "mysql"
+  config.vm.network :forwarded_port, guest: 6379,  host: 6379,  id: "redis"
+  config.vm.network :forwarded_port, guest: 9990,  host: 9990,  id: "torquebox"
+  config.vm.network :forwarded_port, guest: 32615, host: 32615, id: "embus"
+  config.vm.network :forwarded_port, guest: 30000, host: 30000, id: "sugar php"
+  config.vm.network :forwarded_port, guest: 34567, host: 34567, id: "apiproxy"
+  config.vm.network :forwarded_port, guest: 37000, host: 37000, id: "sugardirect"
+  config.vm.network :forwarded_port, guest: 35050, host: 35050, id: "spread_manager"
+  config.vm.network :forwarded_port, guest: 34990, host: 34990, id: "reporter"
+  config.vm.network :forwarded_port, guest: 37020, host: 37020, id: "contact_app"
+  config.vm.network :forwarded_port, guest: 38000, host: 38000, id: "transactron"
+  config.vm.network :forwarded_port, guest: 38080, host: 38080, id: "torquebox-web"
+  config.vm.network :forwarded_port, guest: 38081, host: 38081, id: "pricing-engine-trinidad"
+  config.vm.network :forwarded_port, guest: 38040, host: 38040, id: "reporter"
+  config.vm.network :forwarded_port, guest: 38070, host: 38070, id: "back_office_app"
+  config.vm.network :forwarded_port, guest: 39092, host: 39092, id: "static_data_manager"
+  config.vm.network :forwarded_port, guest: 39090, host: 39090, id: "static_data_service"
+  config.vm.network :forwarded_port, guest: 36006, host: 36006, id: "api_server"
+  config.vm.network :forwarded_port, guest: 36016, host: 36016, id: "v2_api_server"
+  config.vm.network :forwarded_port, guest: 36026, host: 36026, id: "webhook_server"
+  config.vm.network :forwarded_port, guest: 34000, host: 34000, id: "client app"
+  config.vm.network :forwarded_port, guest: 34010, host: 34010, id: "dealer app"
+  config.vm.network :forwarded_port, guest: 34020, host: 34020, id: "customer_app"
+  config.vm.network :forwarded_port, guest: 37030, host: 37030, id: "widget app"
+  config.vm.network :forwarded_port, guest: 37040, host: 37040, id: "fxcg_frontend_app"
+  config.vm.network :forwarded_port, guest: 37050, host: 37050, id: "rfx_customer_frontend"
+  config.vm.network :forwarded_port, guest: 37070, host: 37070, id: "wl frontend"
+  config.vm.network :forwarded_port, guest: 55557, host: 55557, id: "market_simulator_barclays"
+  config.vm.network :forwarded_port, guest: 55558, host: 55558, id: "market_simulator_oanda"
+  config.vm.network :forwarded_port, guest: 34447, host: 34447, id: "visual_vm"
+  config.vm.network :forwarded_port, guest: 34448, host: 34448, id: "fix_engine_oanda_jmx"
+  config.vm.network :forwarded_port, guest: 8125,  host: 8125, id: "statsd-local", protocol: "udp"
+  config.vm.network :forwarded_port, guest: 38060, host: 38060, id: "fix_engine_barclays"
+  config.vm.network :forwarded_port, guest: 38061, host: 38061, id: "fix_engine_oanda"
+  config.vm.network :forwarded_port, guest: 38062, host: 38062, id: "fix_engine_seb"
+
+# If true, then any SSH connections made will enable agent forwarding.
+  # Default value: false
+  # config.ssh.forward_agent = true
+
+  # Share an additional folder to the guest VM. The first argument is
+  # the path on the host to the actual folder. The second argument is
+  # the path on the guest to mount the folder. And the optional third
+  # argument is a set of non-required options.
+  # config.vm.synced_folder "../data", "/vagrant_data"
+  config.vm.synced_folder "./", "/vagrant"
+  config.vm.synced_folder "platform/internal", "/opt/deploy/ccycloud/internal/current"        , type: "nfs"
+  config.vm.synced_folder "platform/external", "/opt/deploy/ccycloud/external/current"        , type: "nfs"
+  config.vm.synced_folder "platform/api_server", "/opt/deploy/ccycloud/api_server/current"    , type: "nfs"
+  config.vm.synced_folder "platform/support", "/opt/deploy/ccycloud/support/current"          , type: "nfs"
+  config.vm.synced_folder "platform/gems", "/opt/deploy/ccycloud/gems"                        , type: "nfs"
+  config.vm.synced_folder "platform/jenkins", "/opt/deploy/ccycloud/jenkins/current"          , type: "nfs"
+  config.vm.synced_folder "ansible", "/opt/deploy/ansible", type: "nfs"
+  config.vm.synced_folder "codex", "/opt/deploy/codex", type: "nfs"
+
+
+  #vagrant ssh -c "ssh -t ansible@lon1prodctl002.ccycloud.com -- -e seed_dbs=yes -t databases"
+end
+
